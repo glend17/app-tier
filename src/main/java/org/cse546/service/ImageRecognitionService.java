@@ -23,9 +23,13 @@ public class ImageRecognitionService {
     private SQSService sqsService;
 
     @Autowired
+    private S3Service s3Service;
+
+    @Autowired
     private AWSUtility awsUtility;
 
     public void processImageAndGetResults(){
+
         while (true){
             List<Message> messageList = sqsService.receiveSqsRequestMessage();
             if(messageList == null){
@@ -37,15 +41,25 @@ public class ImageRecognitionService {
     }
 
     private void processImages(List<Message> imageList){
+        logger.info("Processing images");
         for (Message message : imageList){
             String fileName = message.getBody();
-            getPrediction(fileName);
+            String predictedValue = getPrediction(fileName);
+            if(predictedValue == null){
+                predictedValue = new String("No image predicted");
+            }
+            logger.info("Predicted image name for file: {} is, {}", fileName, predictedValue);
+            s3Service.insertResultData(fileName, predictedValue);
+            String result = fileName + ":" + predictedValue;
+            sqsService.sendMessage(result, awsUtility.getSqsResponseUrl());
+
         }
+        sqsService.deleteQueueMessages(imageList, awsUtility.getSqsRequestUrl());
     }
 
     private String getPrediction(String messageName){
 
-        logger.info("Running the deep learning model...");
+        logger.info("Running the deep learning model for image name {}", messageName);
         String imageUrl = "s3://" + awsUtility.getImageBucketName() + "/" + messageName;
         logger.info("s3ImageUrl: " + imageUrl);
 
