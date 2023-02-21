@@ -34,9 +34,9 @@ public class ImageRecognitionService {
             List<Message> messageList = sqsService.receiveSqsRequestMessage();
             if(messageList == null){
                 logger.info("Finished processing all images. Request Queue is empty");
-                return;
+            } else {
+                processImages (messageList);
             }
-            processImages(messageList);
         }
     }
 
@@ -67,9 +67,10 @@ public class ImageRecognitionService {
         S3Object object = awsUtility.getAmazonS3().getObject(request);
         S3ObjectInputStream objectContent = object.getObjectContent();
         logger.info("s3ImageUrl: " + imageUrl);
+
         try {
             logger.info("Downloading to location: ");
-            IOUtils.copy(objectContent, new FileOutputStream("/home/ubuntu/classifier/" + messageName));
+            IOUtils.copy(objectContent, new FileOutputStream("/Users/pratyushpandey/Downloads/app-tier/" + messageName));
         } catch (FileNotFoundException e) {
             logger.info("FileNotFoundException");
             e.printStackTrace();
@@ -82,7 +83,7 @@ public class ImageRecognitionService {
         Process p;
         try {
             p = new ProcessBuilder("/bin/bash", "-c",
-                    "cd  /home/ubuntu/classifier/ && " + "python3 image_classification.py " + messageName).start();
+                    "cd  /Users/pratyushpandey/Downloads/app-tier && " + "python3 image_classification.py " + messageName).start();
 
             p.waitFor();
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));

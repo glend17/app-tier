@@ -35,9 +35,8 @@ public class SQSService {
         awsUtility.getSQSQueue().sendMessage(sendMessageRequest);
     }
 
-    public void deleteQueueMessages(List<Message> messages, String queue) {
-        logger.info("Delete messages in the queue {}", queue);
-        String queueUrl = awsUtility.getSQSQueue().getQueueUrl(queue).getQueueUrl();
+    public void deleteQueueMessages(List<Message> messages, String queueUrl) {
+        logger.info("Delete messages in the queue {}", queueUrl);
         List<DeleteMessageBatchRequestEntry> batchEntries = new ArrayList<>();
 
         for(Message message : messages) {

@@ -36,16 +36,6 @@ public class AWSUtility {
     private static final String SECRET_KEY = "";
 
     @PostConstruct
-    private void initializeAmazonEC2() {
-        BasicAWSCredentials AWS_CREDENTIALS = getAWSCREDENTIALS();
-        this.ec2 =
-                AmazonEC2ClientBuilder.standard()
-                        .withCredentials(new AWSStaticCredentialsProvider(AWS_CREDENTIALS))
-                        .withRegion(Regions.US_EAST_1).
-                        build();
-    }
-
-    @PostConstruct
     private void initializeAmazonSQSQueue() {
         BasicAWSCredentials AWS_CREDENTIALS = getAWSCREDENTIALS();
         this.sqsQueue =
@@ -82,7 +72,7 @@ public class AWSUtility {
 
     public String getResultBucketName(){
         logger.info("fetching result bucket name");
-        return this.getResultBucketName();
+        return this.resultBucketName;
     }
 
     public AmazonS3 getAmazonS3(){

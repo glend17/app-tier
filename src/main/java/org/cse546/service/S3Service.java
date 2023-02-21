@@ -1,6 +1,8 @@
 package org.cse546.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cse546.utility.AWSUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,16 +32,30 @@ public class S3Service {
         String mapAsString = result.keySet().stream()
                 .map(k -> k + "=" + result.get(k))
                 .collect(Collectors.joining(", ", "{", "}"));
+//        try {
+//            out = new ObjectOutputStream(byteOut);
+//            out.writeObject(result);
+//            ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+//            ObjectInputStream in = new ObjectInputStream(byteIn);
+//            ObjectMetadata meta = new ObjectMetadata();
+//            meta.setContentLength(byteIn.available());
+//            awsUtility.getAmazonS3().putObject(awsUtility.getResultBucketName(), mapAsString, in, meta);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+
         try {
-            out = new ObjectOutputStream(byteOut);
-            out.writeObject(result);
-            ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
-            ObjectInputStream in = new ObjectInputStream(byteIn);
+            String prediction = new ObjectMapper ().writeValueAsString(result);
+            logger.info("Saving output prediction for image: " + key);
             ObjectMetadata meta = new ObjectMetadata();
-            meta.setContentLength(mapAsString.length());
-            awsUtility.getAmazonS3().putObject(awsUtility.getResultBucketName(), mapAsString, in, meta);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            meta.setContentLength(prediction.length());
+            InputStream stream = new ByteArrayInputStream(prediction.getBytes(StandardCharsets.UTF_8));
+            final PutObjectRequest putObjectRequest = new PutObjectRequest(awsUtility.getResultBucketName(), prediction, stream,
+                    meta);
+            awsUtility.getAmazonS3().putObject(putObjectRequest);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
 
 
