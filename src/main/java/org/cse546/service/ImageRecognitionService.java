@@ -70,7 +70,7 @@ public class ImageRecognitionService {
 
         try {
             logger.info("Downloading to location: ");
-            IOUtils.copy(objectContent, new FileOutputStream("/Users/pratyushpandey/Downloads/app-tier/" + messageName));
+            IOUtils.copy(objectContent, new FileOutputStream("/home/ubuntu/" + messageName));
         } catch (FileNotFoundException e) {
             logger.info("FileNotFoundException");
             e.printStackTrace();
@@ -83,7 +83,7 @@ public class ImageRecognitionService {
         Process p;
         try {
             p = new ProcessBuilder("/bin/bash", "-c",
-                    "cd  /Users/pratyushpandey/Downloads/app-tier && " + "python3 image_classification.py " + messageName).start();
+                    "cd  /home/ubuntu && " + "python3 image_classification.py " + messageName).start();
 
             p.waitFor();
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
