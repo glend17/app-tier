@@ -26,12 +26,14 @@ public class S3Service {
     public void insertResultData(String key, String val){
         logger.info("Inserting result data {} : {} to S3 result bucket", key, val);
         Map<String, String> result = new HashMap<String, String>();
-        result.put(key, val);
+        String keyMap = "(" + key.replace(".JPEG", ".txt") + ")";
+        result.put(key.replace(".JPEG", ".txt"), val);
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         ObjectOutputStream out = null;
-        String mapAsString = result.keySet().stream()
-                .map(k -> k + "=" + result.get(k))
-                .collect(Collectors.joining(", ", "{", "}"));
+       // String mapAsString = result.toString ();
+//                result.keySet().stream()
+//                .map(k -> k + "=" + result.get(k))
+//                .collect(Collectors.joining(", ", "{", "}"));
 //        try {
 //            out = new ObjectOutputStream(byteOut);
 //            out.writeObject(result);
@@ -47,12 +49,13 @@ public class S3Service {
         try {
             String prediction = new ObjectMapper ().writeValueAsString(result);
             logger.info("Saving output prediction for image: " + key);
-            ObjectMetadata meta = new ObjectMetadata();
-            meta.setContentLength(prediction.length());
-            InputStream stream = new ByteArrayInputStream(prediction.getBytes(StandardCharsets.UTF_8));
-            final PutObjectRequest putObjectRequest = new PutObjectRequest(awsUtility.getResultBucketName(), prediction, stream,
-                    meta);
-            awsUtility.getAmazonS3().putObject(putObjectRequest);
+            byte[] bytes = val.getBytes();
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(bytes.length);
+            PutObjectRequest request = new PutObjectRequest(awsUtility.getResultBucketName(), keyMap, inputStream, metadata);
+
+            awsUtility.getAmazonS3().putObject(request);
 
         } catch (Exception e) {
             logger.error(e.getMessage());
