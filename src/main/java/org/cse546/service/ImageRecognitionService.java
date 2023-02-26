@@ -19,6 +19,10 @@ import org.apache.commons.io.IOUtils;
 public class ImageRecognitionService {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageRecognitionService.class);
+
+    private static final String UBUNTU_PATH = "/home/ubuntu/";
+    private static final String UBUNTU_COMMAND = "cd  /home/ubuntu && " + "python3 image_classification.py ";
+
     @Autowired
     private SQSService sqsService;
 
@@ -58,44 +62,24 @@ public class ImageRecognitionService {
     }
 
     private String getPrediction(String messageName){
-
-        logger.info("Running the deep learning model for image name {}", messageName);
-        String imageUrl = "s3://" + awsUtility.getImageBucketName() + "/" + messageName;
-        logger.info("s3ImageUrl: " + imageUrl);
-
         GetObjectRequest request = new GetObjectRequest(awsUtility.getImageBucketName(), messageName);
         S3Object object = awsUtility.getAmazonS3().getObject(request);
         S3ObjectInputStream objectContent = object.getObjectContent();
-        logger.info("s3ImageUrl: " + imageUrl);
-
         try {
-            logger.info("Downloading to location: ");
-            IOUtils.copy(objectContent, new FileOutputStream("/home/ubuntu/" + messageName));
-        } catch (FileNotFoundException e) {
-            logger.info("FileNotFoundException");
-            e.printStackTrace();
-        } catch (IOException e) {
-            logger.info("IOException");
+            IOUtils.copy(objectContent, new FileOutputStream(UBUNTU_PATH + messageName));
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
         String output = null;
         Process p;
         try {
-            p = new ProcessBuilder("/bin/bash", "-c",
-                    "cd  /home/ubuntu && " + "python3 image_classification.py " + messageName).start();
-
+            p = new ProcessBuilder("/bin/bash", "-c", UBUNTU_COMMAND + messageName).start();
             p.waitFor();
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//			logger.info("ProcessBuilder: " + p);
             BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            logger.info("br: " + br);
-            logger.info("strError: " + stdError);
             output = br.readLine();
-            logger.info("termOutput: " + output);
             p.destroy();
         } catch (Exception e) {
-            logger.info("Error while processing image recognition");
             e.printStackTrace();
         }
         return output.trim();
