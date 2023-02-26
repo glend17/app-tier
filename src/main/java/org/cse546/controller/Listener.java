@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 
 @Component
 public class Listener {
@@ -15,7 +17,7 @@ public class Listener {
     @Autowired
     private ImageRecognitionService imageRecognitionService;
 
-    public void processQueue(){
+    public void processQueue() throws IOException {
         imageRecognitionService.processImageAndGetResults();
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 
+import java.io.IOException;
+
 @SpringBootApplication
 public class Main {
 
@@ -21,7 +23,7 @@ public class Main {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void startListener(){
+    public void startListener() throws IOException {
         listener.processQueue();
     }
 

@@ -20,10 +20,11 @@ public class SQSService {
     public List<Message> receiveSqsRequestMessage(){
         ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(awsUtility.getSqsRequestUrl());
         receiveMessageRequest.setWaitTimeSeconds(0);
-        receiveMessageRequest.setVisibilityTimeout(15);
+        receiveMessageRequest.setVisibilityTimeout(30);
         receiveMessageRequest.setMaxNumberOfMessages(1);
         ReceiveMessageResult receiveMessageResult  = awsUtility.getSQSQueue().receiveMessage(receiveMessageRequest);
         List<Message> messageList = receiveMessageResult.getMessages();
+
         if(messageList.isEmpty()) return null;
         return messageList;
     }
